@@ -15,7 +15,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from app.config import get_settings
-from app.db.session import SessionLocal, get_engine
+from app.db import session as db_session
+from app.db.session import get_engine
 from app.repositories.credential_repository import CredentialRepository
 from app.repositories.schedule_repository import ScheduleRepository
 from app.repositories.user_repository import UserRepository
@@ -55,14 +56,13 @@ def shutdown_scheduler() -> None:
 def reload_jobs() -> None:
     """Replace all dashboard_* jobs with current DB definitions."""
     get_engine()
-    assert SessionLocal is not None
     sched = get_scheduler()
 
     for job in list(sched.get_jobs()):
         if job.id.startswith("dashboard_"):
             job.remove()
 
-    db = SessionLocal()
+    db = db_session.SessionLocal()
     try:
         jobs = ScheduleRepository(db).list_enabled()
         for job in jobs:
@@ -96,8 +96,8 @@ def reload_jobs() -> None:
 
 def _run_scheduled_job(scheduled_job_id: int) -> None:
     get_engine()
-    assert SessionLocal is not None
-    db = SessionLocal()
+    assert db_session.SessionLocal is not None
+    db = db_session.SessionLocal()
     try:
         from sqlalchemy import select
 

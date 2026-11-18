@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Replicon Timesheet{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+  {% if user is defined and user %}
+  <header class="topbar">
+    <a class="brand" href="/">Replicon Timesheet</a>
+    <nav class="nav">
+      <a href="/" class="{% if request.url.path == '/' %}active{% endif %}">Overview</a>
+      <a href="/templates" class="{% if request.url.path.startswith('/templates') %}active{% endif %}">Templates</a>
+      <a href="/schedules" class="{% if request.url.path.startswith('/schedules') %}active{% endif %}">Schedules</a>
+      <a href="/history" class="{% if request.url.path.startswith('/history') %}active{% endif %}">History</a>
+      <a href="/setup">Setup</a>
+      <span class="muted">{{ user.username }}</span>
+      <a href="/logout">Log out</a>
+    </nav>
+  </header>
+  {% endif %}
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

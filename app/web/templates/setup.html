@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Setup — Replicon Timesheet{% endblock %}
+{% block content %}
+<h1>Replicon setup</h1>
+<p class="lede">One-time step: paste your Replicon access token and user URI. Stored encrypted for your account only.</p>
+
+{% if success %}<div class="flash">{{ success }}</div>{% endif %}
+{% if error %}<div class="flash error">{{ error }}</div>{% endif %}
+{% if configured %}<div class="flash">Credentials already saved. Submitting again will replace the token.</div>{% endif %}
+
+<div class="card">
+  <form method="post" action="/setup">
+    <label for="base_url">Base URL</label>
+    <input id="base_url" name="base_url" type="text" value="{{ base_url }}" required>
+
+    <label for="user_uri">User URI</label>
+    <input id="user_uri" name="user_uri" type="text" value="{{ user_uri }}" required
+           placeholder="urn:replicon-tenant:…:user:…">
+
+    <label for="access_token">Access token</label>
+    <input id="access_token" name="access_token" type="password" required autocomplete="off"
+           placeholder="Paste token (never shown again)">
+
+    <div class="actions">
+      <button class="btn" type="submit">Save &amp; test connection</button>
+      {% if configured %}<a class="btn secondary" href="/">Back to overview</a>{% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}

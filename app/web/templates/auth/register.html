@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Register — Replicon Timesheet</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+  <div class="auth-shell card">
+    <h1>Create account</h1>
+    <p class="lede">Each person gets their own templates, token, and schedules. No admin.</p>
+    {% if error %}<div class="flash error">{{ error }}</div>{% endif %}
+    <form method="post" action="/register">
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" required minlength="3" autocomplete="username">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" required minlength="6" autocomplete="new-password">
+      <label for="password_confirm">Confirm password</label>
+      <input id="password_confirm" name="password_confirm" type="password" required minlength="6" autocomplete="new-password">
+      <div class="actions">
+        <button class="btn" type="submit">Register</button>
+      </div>
+    </form>
+    <p class="muted" style="margin-top:1rem">Already registered? <a href="/login">Log in</a></p>
+  </div>
+</body>
+</html>

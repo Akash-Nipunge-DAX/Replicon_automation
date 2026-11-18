@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Overview — Replicon Timesheet{% endblock %}
+{% block content %}
+<h1>Overview</h1>
+<p class="lede">Week statuses for {{ year }}-{{ '%02d'|format(month) }}. Trigger a fill below or configure a schedule.</p>
+
+{% if flash %}<div class="flash">{{ flash }}</div>{% endif %}
+{% if overview_error %}<div class="flash error">{{ overview_error }}</div>{% endif %}
+
+<div class="card">
+  <form method="get" action="/" class="row">
+    <div>
+      <label for="year">Year</label>
+      <input id="year" name="year" type="number" value="{{ year }}" min="2020" max="2100">
+    </div>
+    <div>
+      <label for="month">Month</label>
+      <input id="month" name="month" type="number" value="{{ month }}" min="1" max="12">
+    </div>
+    <div class="actions" style="align-self:end;margin:0">
+      <button class="btn secondary" type="submit">Refresh month</button>
+    </div>
+  </form>
+</div>
+
+<div class="grid">
+  {% for card in week_cards %}
+  <div class="card week-card">
+    <strong>{{ card.display or card.week_date }}</strong>
+    <div class="muted">Week of {{ card.week_date }}</div>
+    {% set a = (card.approval or '')|lower %}
+    {% if 'approv' in a %}
+      <span class="status approved">{{ card.approval }}</span>
+    {% elif 'wait' in a or 'submit' in a %}
+      <span class="status waiting">{{ card.approval }}</span>
+    {% else %}
+      <span class="status open">{{ card.approval }}</span>
+    {% endif %}
+    {% if card.error %}<p class="muted">{{ card.error }}</p>{% endif %}
+  </div>
+  {% else %}
+  <div class="card">No weeks loaded.</div>
+  {% endfor %}
+</div>
+
+<h2>Run fill</h2>
+<div class="card">
+  <form method="post" action="/fill/run">
+    <div class="row">
+      <div>
+        <label for="week_date">Any date in the target week</label>
+        <input id="week_date" name="week_date" type="date" required>
+      </div>
+      <div>
+        <label for="template_id">Template</label>
+        <select id="template_id" name="template_id" required>
+          {% for t in templates %}
+          <option value="{{ t.id }}" {% if t.is_default %}selected{% endif %}>{{ t.name }}{% if t.is_default %} (default){% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" type="submit">Fill &amp; submit week</button>
+    </div>
+  </form>
+</div>
+
+<h2>Recent runs</h2>
+<div class="card">
+  {% if recent_runs %}
+  <table>
+    <thead><tr><th>When</th><th>Week</th><th>Status</th><th>Template</th></tr></thead>
+    <tbody>
+      {% for run in recent_runs %}
+      <tr>
+        <td>{{ run.created_at }}</td>
+        <td>{{ run.week_date }}</td>
+        <td>{{ run.status }}</td>
+        <td>{{ run.template.name if run.template else '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p><a href="/history">View full history</a></p>
+  {% else %}
+  <p class="muted">No fills yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

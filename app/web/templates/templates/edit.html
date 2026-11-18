@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}{% if template %}Edit{% else %}New{% endif %} template — Replicon Timesheet{% endblock %}
+{% block content %}
+<h1>{% if template %}Edit template{% else %}New template{% endif %}</h1>
+{% if error %}<div class="flash error">{{ error }}</div>{% endif %}
+
+<div class="card">
+  <form method="post" action="{% if template %}/templates/{{ template.id }}{% else %}/templates/new{% endif %}">
+    <label for="name">Name</label>
+    <input id="name" name="name" type="text" required value="{{ template.name if template else '' }}">
+
+    <div class="checks">
+      <label><input type="checkbox" name="skip_weekends" value="true" {% if not template or template.skip_weekends %}checked{% endif %}> Skip weekends</label>
+      <label><input type="checkbox" name="skip_holidays" value="true" {% if not template or template.skip_holidays %}checked{% endif %}> Skip holidays</label>
+      <label><input type="checkbox" name="submit_after_fill" value="true" {% if not template or template.submit_after_fill %}checked{% endif %}> Submit after fill</label>
+      <label><input type="checkbox" name="is_default" value="true" {% if template and template.is_default %}checked{% endif %}> Default template</label>
+    </div>
+
+    <h2>Tasks</h2>
+    <p class="muted">Task names must match Replicon task display names on your timesheet.</p>
+    <div id="task-list">
+      {% for name, hours in tasks %}
+      <div class="task-row">
+        <input type="text" name="task_name" value="{{ name }}" placeholder="Task name" required>
+        <input type="number" name="task_hours" value="{{ hours }}" min="0.25" step="0.25" required>
+        <button type="button" class="btn secondary" data-remove-task>Remove</button>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="add-task">Add task</button>
+      <button class="btn" type="submit">Save</button>
+      <a class="btn secondary" href="/templates">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

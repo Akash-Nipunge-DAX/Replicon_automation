@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}History — Replicon Timesheet{% endblock %}
+{% block content %}
+<h1>Fill history</h1>
+<p class="lede">Manual and scheduled runs for your account.</p>
+
+{% for item in runs %}
+<div class="card">
+  <strong>{{ item.run.week_date }}</strong>
+  — {{ item.run.status }}
+  <span class="muted">· {{ item.run.created_at }}
+    · {{ item.run.template.name if item.run.template else 'template removed' }}</span>
+  <p class="muted">
+    created={{ item.summary.get('created') }}
+    updated={{ item.summary.get('updated') }}
+    existing={{ item.summary.get('existing') }}
+    errors={{ item.summary.get('errors') }}
+    submit={{ (item.summary.get('submit') or {}).get('status', 'n/a') }}
+  </p>
+  {% if item.summary.get('fill_days') %}
+  <p class="muted">Days: {{ item.summary.fill_days | join(', ') }}</p>
+  {% endif %}
+  {% if item.summary.get('skipped') %}
+  <p class="muted">
+    Weekends skipped: {{ (item.summary.skipped.weekends or []) | join(', ') or 'none' }}
+    · Holidays skipped: {{ (item.summary.skipped.holidays or []) | join(', ') or 'none' }}
+  </p>
+  {% endif %}
+</div>
+{% else %}
+<div class="card"><p class="muted">No history yet.</p></div>
+{% endfor %}
+{% endblock %}

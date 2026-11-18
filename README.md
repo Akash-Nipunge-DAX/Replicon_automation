@@ -13,13 +13,20 @@ No admin role. No AI / Cursor skills. One Python codebase with a **server-render
 
 ## Quick start
 
-```powershell
-cd D:\Akash\replicon_automation
-D:\Akash\.venv\Scripts\python.exe -m pip install -r requirements.txt
-copy .env.example .env
+```bash
+cd /path/to/Replicon_automation
+python -m venv .venv
+
+# Windows
+.venv\Scripts\activate
+# macOS / Linux
+# source .venv/bin/activate
+
+pip install -r requirements.txt
+cp .env.example .env   # Windows: copy .env.example .env
 # Edit .env and set a strong SECRET_KEY
 
-D:\Akash\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
+uvicorn app.main:app --reload
 ```
 
 Open [http://127.0.0.1:8000](http://127.0.0.1:8000):
@@ -47,6 +54,102 @@ The token is stored encrypted and is never shown again. If it expires or you rot
 These links use the `na5` region. If your Replicon account is on a different region, replace `na5` in the URLs and in the Base URL on Setup.
 
 Legacy JSON endpoints remain under `/timesheets/*` and `/docs` (they still use `REPLICON_ACCESS_TOKEN` from `.env` if set). Prefer the dashboard for day-to-day use.
+
+---
+
+## How to get your Replicon access token and user URI
+
+You need two values for **Setup** (and optionally for legacy `.env` JSON routes):
+
+| Value | Example shape |
+|-------|----------------|
+| **Base URL** | `https://na5.replicon.com` (your tenant “swimlane”) |
+| **Access token** | Opaque string used as `Authorization: Bearer …` |
+| **User URI** | `urn:replicon-tenant:<tenant-id>:user:<numeric-id>` |
+
+Official reference: [Deltek Replicon — API authentication](https://learning.deltek.com/bundle/Replicon/page/api-authentication.html).
+
+### 1) Find your swimlane / base URL
+
+Log into Replicon in the browser. The hostname is your API base, for example:
+
+- `https://na5.replicon.com`
+- `https://na3.replicon.com`
+- `https://eu1.replicon.com`
+
+API calls must use **that same swimlane**.
+
+### 2) Create an access token
+
+Tokens are created with **AuthenticationService1 / CreateAccessToken2**. You need a permission set that allows this (often an Administrator set).
+
+1. While logged into Replicon, open the Security API help for your swimlane, e.g.  
+   `https://<swimlane>.replicon.com/security/AuthenticationService1.svc/help`
+2. Expand **CreateAccessToken2** → **Try it out**.
+3. Submit a body like:
+
+```json
+{
+  "identity": {
+    "loginName": "your.login.name"
+  },
+  "description": "Timesheet dashboard token",
+  "unitOfWorkId": "dashboard-token-001"
+}
+```
+
+Notes from Replicon docs:
+
+- The token inherits **that user’s** data access.
+- Use a **unique** `unitOfWorkId` each time you intentionally create a **new** token; reusing an ID can return the previously associated result.
+- Keep the token secret; treat it like a password. Prefer storing it only in the dashboard Setup page (encrypted) or in a local `.env` that is gitignored.
+
+Programmatic calls send:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+### 3) Resolve your user URI
+
+The dashboard needs the full **user URI**, not just the login name.
+
+**Option A — from an existing timesheet / profile URL**  
+Some Replicon UI/deep links expose a URI ending in `:user:<id>`. Copy the full `urn:replicon-tenant:…:user:…` value.
+
+**Option B — via UserService1 (recommended)**  
+With a valid Bearer token:
+
+1. Open `https://<swimlane>.replicon.com/services/UserService1.svc/help`
+2. Call **GetEnabledUsers** (or search/list users your token can see).
+3. Find your login in the response and copy the `uri` field.
+
+Example shape:
+
+```text
+urn:replicon-tenant:<your-tenant-id>:user:<your-user-id>
+```
+
+You can also call **BulkGetUsers2** / **GetUser** with a login target once you know how your tenant resolves identities; `GetEnabledUsers` is the simplest discovery path.
+
+### 4) Paste into this app
+
+On the dashboard **Setup** page enter:
+
+- Base URL  
+- User URI  
+- Access token  
+
+The app validates them with a live timesheet inspect, encrypts the token at rest, and seeds a default fill template.
+
+For legacy JSON-only use, you may also set in `.env`:
+
+```env
+REPLICON_BASE_URL=https://na5.replicon.com
+REPLICON_ACCESS_TOKEN=<your-token>
+```
+
+Do **not** commit real tokens. `.env` is gitignored; only `.env.example` is in the repo.
 
 ---
 
@@ -113,8 +216,8 @@ Comments in those modules repeat the same rationale so maintainers see intent ne
 
 ## Tests
 
-```powershell
-D:\Akash\.venv\Scripts\python.exe -m pytest -q
+```bash
+pytest -q
 ```
 
 Unit tests mock Replicon. Dashboard tests use an in-memory SQLite database.
@@ -123,7 +226,7 @@ Unit tests mock Replicon. Dashboard tests use an in-memory SQLite database.
 
 ## Docker
 
-```powershell
+```bash
 docker build -f docker/Dockerfile -t replicon-dashboard .
 docker run -p 8000:8000 -e SECRET_KEY=your-secret -v replicon-data:/data replicon-dashboard
 ```

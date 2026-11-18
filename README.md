@@ -32,6 +32,20 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000):
 
 SQLite file defaults to `data/replicon_dashboard.db`.
 
+---
+
+## Getting your Replicon user URI and access token
+
+You need both values for the **Setup** page. Get the **user URI first**, then the access token. Fill in the required fields on each Replicon help page, and log in to Replicon in the same browser first.
+
+1. **User URI**: open the [GetAllUsers test page](https://na5.replicon.com/services/UserService1.svc/help/test/GetAllUsers), fill in the required fields, and run it. Find your own user in the response and copy its `uri` (format `urn:replicon-tenant:<tenant>:user:<id>`).
+2. **Access token**: open the [CreateAccessToken test page](https://na5.replicon.com/security/AuthenticationService1.svc/help/test/CreateAccessToken), fill in the required fields, and run it. Copy the token from the response.
+3. Paste the base URL (`https://na5.replicon.com`), the user URI and the token into **Setup** in the dashboard.
+
+The token is stored encrypted and is never shown again. If it expires or you rotate `SECRET_KEY`, repeat step 2 and re-submit Setup.
+
+These links use the `na5` region. If your Replicon account is on a different region, replace `na5` in the URLs and in the Base URL on Setup.
+
 Legacy JSON endpoints remain under `/timesheets/*` and `/docs` (they still use `REPLICON_ACCESS_TOKEN` from `.env` if set). Prefer the dashboard for day-to-day use.
 
 ---
